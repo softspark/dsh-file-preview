@@ -12,7 +12,10 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // reporting channel or a code of conduct is not publishable.
 const required = [
   'LICENSE', 'NOTICE', 'README.md', 'CHANGELOG.md', 'SECURITY.md',
-  'CODE_OF_CONDUCT.md', 'cordis.patch.yml', '.npmrc',
+  'CODE_OF_CONDUCT.md', 'cordis.patch.yml', '.npmrc', '.npmignore',
+  'scripts/audit.mjs', 'scripts/validate-kb.mjs', 'scripts/validate-license.mjs',
+  'scripts/validate-package.mjs', 'scripts/validate-config.mjs',
+  'scripts/verify-version-sync.mjs',
   '.github/CODEOWNERS', '.github/FUNDING.yml', '.github/dependabot.yml',
   '.github/CONTRIBUTING.md', '.github/PULL_REQUEST_TEMPLATE.md',
   '.github/ISSUE_TEMPLATE/bug_report.md',

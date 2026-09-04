@@ -107,7 +107,18 @@
     "validate:config": "node scripts/validate-config.mjs",
     "verify:required-files": "node scripts/verify-required-files.mjs",
     "verify:version": "node scripts/verify-version-sync.mjs",
-    "verify": "npm run verify:required-files && npm run verify:version && npm run validate:config && npm run typecheck && npm run test"
+    "verify": "npm run verify:required-files && npm run verify:version && npm run validate:license && npm run validate:package && npm run validate:kb && npm run validate:config && npm run lint && npm run typecheck && npm run test",
+    "test:coverage": "vitest run --coverage",
+    "lint": "node --check scripts/*.mjs",
+    "validate:kb": "node scripts/validate-kb.mjs",
+    "validate:license": "node scripts/validate-license.mjs",
+    "validate:package": "node scripts/validate-package.mjs",
+    "audit": "node scripts/audit.mjs --ci",
+    "audit:sarif": "node scripts/audit.mjs --sarif",
+    "audit:permissions": "node scripts/audit.mjs --permissions",
+    "audit:dependencies": "pnpm audit --audit-level=high",
+    "audit:signatures": "npm audit signatures",
+    "package:check": "npm pack --dry-run --ignore-scripts"
   },
   "dependencies": {
     "zod": "^4.4.3"

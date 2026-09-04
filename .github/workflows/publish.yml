@@ -15,6 +15,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      security-events: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -31,6 +32,14 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run verify
       - run: node scripts/verify-version-sync.mjs --tag "${GITHUB_REF_NAME}"
+      - run: pnpm run audit
+      - run: pnpm run audit:dependencies
+      - run: pnpm run audit:signatures
+      - name: Generate SARIF
+        run: node scripts/audit.mjs --sarif > audit.sarif
+      - uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: audit.sarif
       - run: pnpm run build
       - run: npm pack --dry-run --ignore-scripts
       - name: Publish public package with provenance
