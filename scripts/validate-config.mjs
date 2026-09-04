@@ -14,11 +14,34 @@ const manifest = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'))
 // make the bundle depend on a package the install does not carry.
 for (const expected of [
   "- id: file-preview",
-  "  name: '@softspark/dsh-file-preview'",
+  "      name: '@softspark/dsh-file-preview/host'",
   "- id: ui-file-preview",
-  "  name: '@softspark/dsh-file-preview/client'",
+  "      name: '@softspark/dsh-file-preview'",
 ]) {
   if (!patch.includes(expected)) throw new Error(`cordis.patch.yml is missing: ${expected}`);
+}
+
+// New rows must be inserted. A bare `- id:` entry patches a row that already
+// exists, and DSH answers `patch: entry "file-preview" not found`, skips it,
+// and leaves a plugin that installs cleanly and does nothing at all.
+if (!/^- insert:$/mu.test(patch)) {
+  throw new Error('cordis.patch.yml must add its rows through `insert:`, not as bare patch entries');
+}
+
+// The browser row must name the package root. DSH imports a row's name on the
+// host before it ever reaches the page, and the root is the only entry that is
+// both Node-importable and carries the `dsh.client` declaration; naming the
+// browser artifact directly makes the harness fail to boot.
+if (patch.includes("name: '@softspark/dsh-file-preview/client'")) {
+  throw new Error('the browser row must name the package root, not the client artifact');
+}
+if (manifest.dsh?.client === undefined) {
+  throw new Error('package.json must declare dsh.client so the harness serves the browser half');
+}
+// The harness validates this field before it will serve the bundle, and refuses
+// to boot the whole profile without it.
+if (typeof manifest.dsh.client.platform !== 'string') {
+  throw new Error('dsh.client.platform must be a string, e.g. "web"');
 }
 
 if (manifest.dsh?.bundle?.patch !== './cordis.patch.yml') {

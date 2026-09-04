@@ -73,36 +73,45 @@ export const schemas = {
 
 const PACKAGE = '@softspark/dsh-file-preview'
 
+/**
+ * The one invocation this package exposes, shared by both faces.
+ *
+ * The host registers it as `invocations`, the browser mounts it as
+ * `descriptors`; keeping one array means the wire contract cannot disagree
+ * with itself across the two.
+ */
+export const INVOCATIONS = [
+  {
+    id: `${PACKAGE}#filePreview/previewFile`,
+    service: 'filePreview',
+    namespace: 'filePreview',
+    method: 'previewFile',
+    invocation: { kind: 'direct' },
+    parameters: [
+      {
+        name: 'input',
+        wire: 'input',
+        source: 'json',
+        codec: {
+          mode: 'strict',
+          typeSymbol: `${PACKAGE}/types#FilePreviewRequest`,
+          schema: request$schema,
+        },
+      },
+    ],
+    cancellation: { parameter: 'signal' },
+    result: {
+      mode: 'strict',
+      typeSymbol: `${PACKAGE}/types#FilePreviewResult`,
+      schema: result$schema,
+    },
+  },
+] as const
+
 /** The descriptor the browser half mounts onto `ctx.remote`. */
 export const TYPERT_REMOTE = {
   package: PACKAGE,
-  descriptors: [
-    {
-      id: `${PACKAGE}#filePreview/previewFile`,
-      service: 'filePreview',
-      namespace: 'filePreview',
-      method: 'previewFile',
-      invocation: { kind: 'direct' },
-      parameters: [
-        {
-          name: 'input',
-          wire: 'input',
-          source: 'json',
-          codec: {
-            mode: 'strict',
-            typeSymbol: `${PACKAGE}/types#FilePreviewRequest`,
-            schema: request$schema,
-          },
-        },
-      ],
-      cancellation: { parameter: 'signal' },
-      result: {
-        mode: 'strict',
-        typeSymbol: `${PACKAGE}/types#FilePreviewResult`,
-        schema: result$schema,
-      },
-    },
-  ],
+  descriptors: INVOCATIONS,
 } as const
 
 export default TYPERT_REMOTE

@@ -93,7 +93,11 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
     order: 0,
     locale: NS,
     inject: () => ({
-      request: source,
+      // An observable declared under `hooks` reaches the component as a
+      // subscribing `use…` hook. Passing the source as a plain value instead
+      // renders once and never again: the modal stays invisible while every
+      // gesture is silently swallowed by the seam.
+      hooks: { preview: source },
       close: () => { source.close() },
       // The Remote face double-envelopes results (carrier, then business), and
       // the modal only speaks the business one; a carrier failure becomes the
@@ -118,12 +122,12 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
 
 /** Renders the single modal for whichever request the source currently holds. */
 function FilePreviewOverlay(props: {
-  readonly request: ReturnType<typeof createPreviewSource>
+  readonly usePreview: <T>(select: (request: FileOpenRequest | null) => T) => T
   readonly close: () => void
   readonly previewFile: (request: FileOpenRequest, signal: AbortSignal) => Promise<FilePreviewResult>
   readonly t: TranslateNS<typeof NS>
 }) {
-  const request = props.request.getSnapshot()
+  const request = props.usePreview((current) => current)
   if (request === null) return null
   return (
     <FilePreviewModal

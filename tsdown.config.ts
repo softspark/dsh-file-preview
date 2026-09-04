@@ -6,7 +6,7 @@ import { defineConfig } from 'tsdown'
  * sit below a workspace root and this is a single-package repository.
  */
 export default defineConfig({
-  entry: ['lib/types/index.js', 'lib/types/invariant.js'],
+  entry: ['lib/types/index.js', 'lib/types/host.js', 'lib/types/invariant.js'],
   outDir: 'lib',
   format: ['esm'],
   platform: 'node',

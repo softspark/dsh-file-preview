@@ -1,14 +1,25 @@
 # Self-contained install unit for the file-preview plugin.
 #
-# Both halves live in one package: the default export is the host Remote
-# service, and the `/client` subpath is the browser plugin. Installing this
-# package with `dsh plugin --profile <name> add @softspark/dsh-file-preview`
-# activates the bundle, so no harness composition has to name either row.
+# Both halves live in one package, and the row names are not interchangeable:
+#
+#   ui-file-preview -> the package root. DSH imports a row's name on the HOST
+#     even when the row's behaviour is entirely in the browser, then reads the
+#     package's `dsh.client` declaration to decide what to serve the page. The
+#     root is therefore a no-op Node module; naming `/client` here instead
+#     points the host import straight at the browser artifact and the harness
+#     refuses to boot with `window is not defined`.
+#
+#   file-preview -> the `./host` subpath, where the Remote service actually is.
+#
+# `insert:` is load-bearing too. A bare `- id:` entry *patches* a row that
+# already exists; DSH reports `patch: entry "file-preview" not found`, skips it,
+# and leaves a plugin that installs cleanly and does nothing.
 #
 # The browser half claims conversation file-open gestures by wrapping the
-# harness's own `workspaces.openPath`. Removing either row from a profile
+# harness's own `workspaces.openPath`. Removing this bundle from a profile
 # removes the whole surface and restores the harness's native open.
-- id: file-preview
-  name: '@softspark/dsh-file-preview'
-- id: ui-file-preview
-  name: '@softspark/dsh-file-preview/client'
+- insert:
+    - id: file-preview
+      name: '@softspark/dsh-file-preview/host'
+    - id: ui-file-preview
+      name: '@softspark/dsh-file-preview'
