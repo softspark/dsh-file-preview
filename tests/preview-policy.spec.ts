@@ -2,7 +2,9 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { successfulMutationPaths } from '../src/preview-policy.ts'
 
-const CWD = '/workspace/project'
+// Absolute on every platform: path.resolve gives Windows its drive letter, so
+// the expectations below have to go through the same functions as the module.
+const CWD = path.resolve('/workspace/project')
 
 function nativeCall(callId: string, filePath: string, name: 'write' | 'edit' = 'write'): unknown {
   return { type: 'tool/call', data: { callId, name, arguments: JSON.stringify({ file_path: filePath }) } }
@@ -20,7 +22,7 @@ describe('successfulMutationPaths', () => {
     expect(successfulMutationPaths([
       nativeCall('write-1', 'notes/readme.md'),
       nativeResult('write-1', false),
-    ], CWD)).toEqual([path.join(CWD, 'notes/readme.md')])
+    ], CWD)).toEqual([path.resolve(CWD, 'notes/readme.md')])
   })
 
   it('ignores failed, duplicate-success, unpaired, and running native calls', () => {
@@ -38,7 +40,7 @@ describe('successfulMutationPaths', () => {
       { type: 'tool/code-dispatch', data: { name: 'edit', arguments: { file_path: 'generated/output.ts' }, isError: false } },
       { type: 'tool/code-dispatch', data: { name: 'write', arguments: { file_path: '/tmp/failed.txt' }, isError: true } },
       { type: 'tool/code-dispatch', data: { name: 'write', arguments: { file_path: '/tmp/running.txt' } } },
-    ], CWD)).toEqual([path.join(CWD, 'generated/output.ts')])
+    ], CWD)).toEqual([path.resolve(CWD, 'generated/output.ts')])
   })
 
   it('normalizes paths and preserves first successful order', () => {
@@ -48,7 +50,7 @@ describe('successfulMutationPaths', () => {
       nativeCall('absolute', '/tmp/build/../artifact.pdf'),
       nativeResult('absolute', false),
       { type: 'tool/code-dispatch', data: { name: 'edit', arguments: { file_path: '/tmp/artifact.pdf' }, isError: false } },
-    ], CWD)).toEqual([path.join(CWD, 'README.md'), '/tmp/artifact.pdf'])
+    ], CWD)).toEqual([path.resolve(CWD, 'README.md'), path.normalize('/tmp/artifact.pdf')])
   })
 
   it('ignores malformed arguments and relative paths without an absolute cwd', () => {
