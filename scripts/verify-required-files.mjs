@@ -13,7 +13,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const required = [
   'LICENSE', 'NOTICE', 'README.md', 'CHANGELOG.md', 'SECURITY.md',
   'CODE_OF_CONDUCT.md', 'cordis.patch.yml', '.npmrc', '.npmignore',
-  'scripts/audit.mjs', 'scripts/validate-kb.mjs', 'scripts/validate-license.mjs',
+  'scripts/audit.mjs', 'scripts/lint.mjs', 'scripts/validate-kb.mjs', 'scripts/validate-license.mjs',
   'scripts/validate-package.mjs', 'scripts/validate-config.mjs',
   'scripts/verify-version-sync.mjs',
   '.github/CODEOWNERS', '.github/FUNDING.yml', '.github/dependabot.yml',

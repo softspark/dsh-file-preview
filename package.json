@@ -109,7 +109,7 @@
     "verify:version": "node scripts/verify-version-sync.mjs",
     "verify": "npm run verify:required-files && npm run verify:version && npm run validate:license && npm run validate:package && npm run validate:kb && npm run validate:config && npm run lint && npm run typecheck && npm run test",
     "test:coverage": "vitest run --coverage",
-    "lint": "node --check scripts/*.mjs",
+    "lint": "node scripts/lint.mjs",
     "validate:kb": "node scripts/validate-kb.mjs",
     "validate:license": "node scripts/validate-license.mjs",
     "validate:package": "node scripts/validate-package.mjs",
