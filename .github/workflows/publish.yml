@@ -1,0 +1,43 @@
+name: Publish
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Verify and publish to npm
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.19.0'
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+          scope: '@softspark'
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm run verify
+      - run: node scripts/verify-version-sync.mjs --tag "${GITHUB_REF_NAME}"
+      - run: pnpm run build
+      - run: npm pack --dry-run --ignore-scripts
+      - name: Publish public package with provenance
+        run: npm publish --provenance --access public --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@fe965f7af51af5f2602596916f38a38df2e33de0
+        with:
+          generate_release_notes: true

@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.19.0'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm run verify
+
+  hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Required files present
+        run: node scripts/verify-required-files.mjs
+      - name: No build artifacts tracked
+        run: |
+          offending=$(git ls-files | grep -E 'node_modules/|(^|/)lib/|\.tsbuildinfo$|\.zip$' || true)
+          if [ -n "$offending" ]; then
+            echo "tracked files that must be gitignored:"; echo "$offending"; exit 1
+          fi
+          echo "OK: no build artifacts tracked."

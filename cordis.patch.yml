@@ -1,0 +1,14 @@
+# Self-contained install unit for the file-preview plugin.
+#
+# Both halves live in one package: the default export is the host Remote
+# service, and the `/client` subpath is the browser plugin. Installing this
+# package with `dsh plugin --profile <name> add @softspark/dsh-file-preview`
+# activates the bundle, so no harness composition has to name either row.
+#
+# The browser half claims conversation file-open gestures by wrapping the
+# harness's own `workspaces.openPath`. Removing either row from a profile
+# removes the whole surface and restores the harness's native open.
+- id: file-preview
+  name: '@softspark/dsh-file-preview'
+- id: ui-file-preview
+  name: '@softspark/dsh-file-preview/client'
