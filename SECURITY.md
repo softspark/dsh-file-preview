@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Version `1.0.0` receives security fixes on `main`.
+The `2.x` line receives security fixes on `main` and targets DSH `0.1.2-rc.1`. Version `1.0.0` is the historical DSH `0.1.1-rc.2` release.
 
 ## Reporting a vulnerability
 

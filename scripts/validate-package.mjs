@@ -8,7 +8,6 @@ const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.
 
 for (const [field, expected] of Object.entries({
   name: '@softspark/dsh-file-preview',
-  version: '1.0.0',
   license: 'Apache-2.0',
   type: 'module',
 })) {
@@ -16,6 +15,7 @@ for (const [field, expected] of Object.entries({
 }
 
 if (manifest.private === true) throw new Error('publishable package cannot be private');
+if (!/^[1-9]\d*\.\d+\.\d+$/u.test(manifest.version)) throw new Error('public releases require a stable version starting at 1.0.0');
 if (manifest.engines?.node !== '>=22.19.0') throw new Error('Node engine must match the supported DSH baseline');
 if (manifest.publishConfig?.access !== 'public') throw new Error('publishConfig.access must be public');
 

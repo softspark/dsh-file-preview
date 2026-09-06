@@ -83,7 +83,7 @@ async function authorizeTarget(
   ])
   if (ctx.fs.contains(workspace, target)) return { ok: true, target }
 
-  for (const produced of successfulMutationPaths(session.events, cwd)) {
+  for (const produced of successfulMutationPaths(session.snapshotEvents(), cwd)) {
     try {
       const candidate = await ctx.fs.resolve(produced, resolveOptions(signal))
       // Mutual containment is path identity: a provenance entry grants exactly

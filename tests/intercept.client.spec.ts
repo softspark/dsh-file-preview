@@ -1,65 +1,58 @@
 import { describe, expect, it, vi } from 'vitest'
 import { interceptOpenPath } from '../src/client/intercept.ts'
 
-/** A stand-in for the harness service: the method lives on the prototype, as it
- *  does in `@deepseek-ai/dsh-client-runtime`. */
-class Workspaces {
-  async openPath(_path: string): Promise<void> {}
+function namespace() {
+  const native = vi.fn(async (_request: { readonly path: string }, _signal?: AbortSignal) => ({
+    ok: true as const, value: { opened: true as const },
+  }))
+  const getter = vi.fn(() => native)
+  const opener = { get openWorkspacePath() { return getter() } }
+  return { opener, native, getter }
 }
 
 describe('interceptOpenPath', () => {
-  it('claims a path this package renders and never calls the harness opener', async () => {
-    const workspaces = new Workspaces()
-    const native = vi.spyOn(Workspaces.prototype, 'openPath')
-    const seen: string[] = []
-
-    interceptOpenPath(workspaces, (path) => { seen.push(path); return true })
-    await workspaces.openPath('/w/notes.md')
-
-    expect(seen).toEqual(['/w/notes.md'])
+  it('claims a preview without invoking the host opener', async () => {
+    const { opener, native } = namespace()
+    const handled = vi.fn(() => true)
+    interceptOpenPath(opener, handled)
+    expect(await opener.openWorkspacePath({ path: '/w/notes.md' }))
+      .toEqual({ ok: true, value: { opened: true } })
+    expect(handled).toHaveBeenCalledWith('/w/notes.md')
     expect(native).not.toHaveBeenCalled()
-    native.mockRestore()
   })
 
-  it('hands an unrenderable path back to the harness untouched', async () => {
-    const workspaces = new Workspaces()
-    const native = vi.spyOn(Workspaces.prototype, 'openPath').mockResolvedValue()
-
-    interceptOpenPath(workspaces, () => false)
-    await workspaces.openPath('/w/archive.zip')
-
-    // The user who installed a preview plugin must not lose native open for
-    // everything the plugin cannot show.
-    expect(native).toHaveBeenCalledWith('/w/archive.zip')
-    native.mockRestore()
+  it('preserves the native request, cancellation and carrier result for other paths', async () => {
+    const { opener, native, getter } = namespace()
+    const request = { path: '/w/archive.zip' }
+    const signal = new AbortController().signal
+    interceptOpenPath(opener, () => false)
+    await opener.openWorkspacePath(request, signal)
+    expect(native).toHaveBeenCalledWith(request, signal)
+    expect(getter).toHaveBeenCalledTimes(2)
   })
 
-  it('restores the original method on dispose', async () => {
-    const workspaces = new Workspaces()
-    const before = workspaces.openPath
-    const dispose = interceptOpenPath(workspaces, () => true)
-
-    expect(workspaces.openPath).not.toBe(before)
+  it('restores the getter-only Remote descriptor on unload', () => {
+    const { opener } = namespace()
+    const before = Object.getOwnPropertyDescriptor(opener, 'openWorkspacePath')
+    const dispose = interceptOpenPath(opener, () => true)
     dispose()
-    expect(workspaces.openPath).toBe(before)
+    expect(Object.getOwnPropertyDescriptor(opener, 'openWorkspacePath')).toEqual(before)
   })
 
-  it('leaves a later wrapper in place when disposed out of order', () => {
-    const workspaces = new Workspaces()
-    interceptOpenPath(workspaces, () => true)
-    const outer = async (): Promise<void> => {}
-    // Another plugin wraps us afterwards; our disposer must not clobber it.
-    const dispose = interceptOpenPath(workspaces, () => true)
-    workspaces.openPath = outer
+  it('does not overwrite a later wrapper during out-of-order unload', () => {
+    const { opener } = namespace()
+    const dispose = interceptOpenPath(opener, () => true)
+    const outer = () => vi.fn()
+    Object.defineProperty(opener, 'openWorkspacePath', { configurable: true, get: outer })
     dispose()
-
-    expect(workspaces.openPath).toBe(outer)
+    expect(Object.getOwnPropertyDescriptor(opener, 'openWorkspacePath')?.get).toBe(outer)
   })
 
-  it('refuses to mount when the harness has no such seam', () => {
-    const broken = { openPath: undefined } as unknown as Workspaces
-
-    expect(() => interceptOpenPath(broken, () => true))
-      .toThrow(/does not expose the file-open seam/u)
+  it('rejects a missing or nonconfigurable opener at mount time', () => {
+    const missing = { openWorkspacePath: undefined } as unknown as ReturnType<typeof namespace>['opener']
+    expect(() => interceptOpenPath(missing, () => true)).toThrow(/file-open seam/u)
+    const { opener } = namespace()
+    Object.defineProperty(opener, 'openWorkspacePath', { configurable: false })
+    expect(() => interceptOpenPath(opener, () => true)).toThrow(/file-open seam/u)
   })
 })

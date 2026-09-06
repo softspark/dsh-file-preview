@@ -2,8 +2,9 @@
 title: "dsh-file-preview Implementation Plan"
 category: planning
 service: dsh-file-preview
+version: "2.0.0"
 tags: [planning, preview, security, plan, pre-mortem]
-last_updated: "2026-09-04"
+last_updated: "2026-09-06"
 created: "2026-09-03"
 description: "Approved scope, success criteria, delivery phases and pre-mortem for the in-conversation file preview."
 ---

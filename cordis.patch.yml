@@ -16,7 +16,7 @@
 # and leaves a plugin that installs cleanly and does nothing.
 #
 # The browser half claims conversation file-open gestures by wrapping the
-# harness's own `workspaces.openPath`. Removing this bundle from a profile
+# harness's `remote.session.openWorkspacePath`. Removing this bundle from a profile
 # removes the whole surface and restores the harness's native open.
 - insert:
     - id: file-preview

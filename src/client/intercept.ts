@@ -1,9 +1,9 @@
 /**
  * The seam that makes this plugin work on an unmodified harness.
  *
- * Every file a conversation can open — tool rows, produced-file chips, unique
- * inline mentions — reaches the same place in stock DSH:
- * `workspaces.openPath(resolveWorkspacePath(cwd, path))`. Wrapping that one
+ * Every file a conversation can open, including tool rows and produced-file
+ * chips, reaches `remote.session.openWorkspacePath({ path })` in DSH 0.1.2.
+ * Wrapping that one
  * method therefore claims all three sources without patching, forking or
  * vendoring anything, and without depending on an extension point that only
  * exists in a modified harness.
@@ -16,43 +16,52 @@
  */
 
 import { invariant } from '../invariant.ts'
+import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 
 /** The one method this package borrows from the harness. */
-type OpenPath = (path: string) => Promise<void>
+type OpenPath = (request: { readonly path: string }, signal?: AbortSignal) => Promise<RemoteResult<{ readonly opened: true }>>
 
-interface Workspaces {
-  openPath: OpenPath
+interface WorkspaceOpener {
+  openWorkspacePath: OpenPath
 }
 
 /**
  * Route previewable paths to `handled` and leave everything else alone.
  *
- * @param workspaces - the live `ctx.workspaces` service.
+ * @param opener - the live `ctx.remote.session` namespace.
  * @param handled - returns true when this package took responsibility for the
  *   path; false hands the gesture back to the harness untouched.
  * @returns a disposer that restores the original method.
  */
 export function interceptOpenPath(
-  workspaces: Workspaces,
+  opener: WorkspaceOpener,
   handled: (resolvedPath: string) => boolean,
 ): () => void {
-  const original = workspaces.openPath
+  const original = Object.getOwnPropertyDescriptor(opener, 'openWorkspacePath')
+  const initial = opener.openWorkspacePath
   // A rename upstream must fail here, at mount, rather than silently degrade
   // into a plugin that renders nothing and swallows nothing.
   invariant(
-    typeof original === 'function',
-    'ctx.workspaces.openPath is not a function; this harness does not expose the file-open seam this plugin wraps',
+    typeof initial === 'function' && original?.configurable !== false,
+    'ctx.remote.session.openWorkspacePath is unavailable; this harness does not expose the file-open seam this plugin wraps',
   )
 
-  const wrapped: OpenPath = async function (this: unknown, path: string): Promise<void> {
-    if (handled(path)) return
-    return Reflect.apply(original, this, [path]) as Promise<void>
+  // Remote methods are configurable getter-only descriptors. Resolve their
+  // original getter for each caller so Cordis keeps the caller's trace context.
+  const get = function (this: WorkspaceOpener): OpenPath {
+    const native = original?.get?.call(this) as OpenPath | undefined ?? initial
+    return async (request, signal) => {
+      if (handled(request.path)) return { ok: true, value: { opened: true } }
+      return Reflect.apply(native, this, [request, signal]) as ReturnType<OpenPath>
+    }
   }
 
-  workspaces.openPath = wrapped
+  Object.defineProperty(opener, 'openWorkspacePath', { configurable: true, enumerable: true, get })
   return () => {
     // Restore only what we installed: another plugin may have wrapped us in
     // turn, and clobbering its wrapper would silently disable it.
-    if (workspaces.openPath === wrapped) workspaces.openPath = original
+    if (Object.getOwnPropertyDescriptor(opener, 'openWorkspacePath')?.get !== get) return
+    if (original === undefined) Reflect.deleteProperty(opener, 'openWorkspacePath')
+    else Object.defineProperty(opener, 'openWorkspacePath', original)
   }
 }

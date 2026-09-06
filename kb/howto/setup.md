@@ -2,8 +2,9 @@
 title: "Install dsh-file-preview"
 category: howto
 service: dsh-file-preview
+version: "2.0.0"
 tags: [setup, install, dsh, profile, bundle]
-last_updated: "2026-09-04"
+last_updated: "2026-09-06"
 created: "2026-09-04"
 description: "Install the bundle into a DSH profile and confirm it claimed the file-open gesture."
 ---
@@ -14,7 +15,7 @@ description: "Install the bundle into a DSH profile and confirm it claimed the f
 
 - Node.js 22.19.0 or newer.
 - `pnpm` for the DSH profile plugin manager.
-- DeepSeek Harness `0.1.1-rc.2`.
+- DeepSeek Harness `0.1.2-rc.1`.
 
 No harness modification is required. The plugin works on the published harness.
 

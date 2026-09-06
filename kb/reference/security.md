@@ -2,8 +2,9 @@
 title: "dsh-file-preview Security Model"
 category: reference
 service: dsh-file-preview
+version: "2.0.0"
 tags: [security, authorization, sanitization, sandbox, preview]
-last_updated: "2026-09-04"
+last_updated: "2026-09-06"
 created: "2026-09-04"
 description: "What authorizes a read, what bounds it, and what makes an active document inert."
 ---

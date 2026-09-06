@@ -9,7 +9,9 @@
  * @module @softspark/dsh-file-preview/client
  */
 
-import type { ClientContext, ISessions } from '@deepseek-ai/dsh-client-runtime/client'
+import type { Context } from '@deepseek-ai/cordis'
+import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
+import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 // Type-only: pulls the `ctx.remote` merge and the mounted namespace face.
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type { ClientRemote } from '@deepseek-ai/dsh-api-remotes/client'
@@ -48,14 +50,14 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
 export type { FilePreviewKey } from './locales.ts'
 
 /** Services the overlay registration, its dictionaries and its seam require. */
-export const inject = ['slots', 'locale', 'sessions', 'workspaces', 'remote']
+export const inject = ['slots', 'locale', 'sessions', 'remote', 'remote.session']
 
 /**
  * Mount the Remote face, claim the file-open seam, and register the modal.
  * @param ctx - the browser plugin context.
  * @returns the disposer that unmounts the Remote face.
  */
-export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
+export async function apply(ctx: Context): Promise<() => Promise<void>> {
   // `remote.filePreview` exists only after this mount, so it cannot appear in
   // `inject` — an inject entry would wait for a service this apply creates.
   const disposeRemote = await ctx.remote.$mount(filePreviewRemote)
@@ -73,7 +75,7 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
   // The seam. Claim only what this package renders; everything else must reach
   // the harness's own opener exactly as it did before installation.
   ctx.effect(
-    () => interceptOpenPath(ctx.workspaces, (resolvedPath) => {
+    () => interceptOpenPath(ctx.remote.session, (resolvedPath) => {
       if (!isPreviewablePath(resolvedPath)) return false
       const sessionId = sessions.list.getSnapshot().current
       // Without a session there is nothing to authorize against, so the

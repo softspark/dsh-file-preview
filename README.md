@@ -8,6 +8,14 @@ Read-only file preview inside a DeepSeek Harness conversation. Click a file the 
 
 Works on the **published harness**. No patch, no fork, no modified checkout.
 
+## What's New in v2.0.0
+
+- DSH `0.1.2-rc.1` support through its Session Remote opener and immutable host event snapshots.
+- Enforced 70% coverage, filesystem authorization integration tests, and browser registration tests.
+- Complete post-release SOP and published browser TypeScript declarations.
+
+Version 2 requires DSH `0.1.2-rc.1`. Keep plugin `1.0.0` when using DSH `0.1.1-rc.2`.
+
 ## Contents
 
 - [Why](#why)
@@ -26,7 +34,7 @@ Without it, opening a file from a conversation hands the path to the host operat
 ## Requirements
 
 - Node.js 22.19.0 or newer
-- DeepSeek Harness `0.1.1-rc.2`
+- DeepSeek Harness `0.1.2-rc.1`
 - `pnpm` for the profile plugin manager
 
 ## Install
@@ -50,7 +58,7 @@ Anything else reaches the harness's own opener untouched, exactly as before the 
 
 ## How it claims a click
 
-Every conversation file-open in a stock harness funnels through one call, `workspaces.openPath`. The browser half wraps that method, handles what it can render, and delegates the rest. Nothing in the harness is modified, and removing the package restores the original behaviour.
+Every conversation file-open in DSH 0.1.2 reaches `remote.session.openWorkspacePath({ path })`. The browser half wraps its getter while preserving the native request, cancellation signal, and caller context. Removing the package restores the original descriptor.
 
 If a future harness stops exposing that method, the plugin refuses to mount rather than silently swallowing clicks.
 
@@ -69,6 +77,7 @@ Full model in [`kb/reference/security.md`](kb/reference/security.md) and [`SECUR
 | [Setup](kb/howto/setup.md) | Install and confirm |
 | [Common issues](kb/troubleshooting/common-issues.md) | Why a preview refuses or does not open |
 | [Release SOP](kb/procedures/sop-release.md) | How a version ships |
+| [Post-release SOP](kb/procedures/sop-post-release-testing.md) | Registry provenance, browser behavior, and authorization checks |
 
 ## Contributing
 
@@ -77,3 +86,7 @@ See [CONTRIBUTING](.github/CONTRIBUTING.md). `pnpm run verify` is the gate.
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the full release history.
