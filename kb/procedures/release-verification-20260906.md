@@ -25,11 +25,20 @@ Registry metadata returned SLSA provenance v1. A fresh npm 11.13.0 artifact
 consumer verified **2 registry signatures and 2 attestations** for the plugin
 and its direct dependency. Lifecycle scripts and automatic host peer
 installation were disabled for this artifact-inspection consumer. This is
-independent of the complete DSH profile qualification below.
+independent of the DSH profile qualification below.
 
 All concrete exported JavaScript and TypeScript declaration targets exist,
 including the host and browser entries. LICENSE, NOTICE and cordis.patch.yml
 are present. Source, tests, scripts, KB and .github are excluded.
+
+The isolated profile then installed the exact registry versions of
+`dsh-file-preview@2.0.0` and `dsh-process-console@2.0.0` through the DSH plugin
+manager and restarted without local UI tarball references. In the browser,
+the actual ZIP link again returned HTTP 200 with `opened:true` and no preview
+dialog. The Markdown link then opened, closed and reopened
+`UI_PREVIEW_20260906`. There were no page or console errors. These checks used
+the published browser package and existing fixture session, without new model
+calls; the earlier candidate evidence remains separate below.
 
 ## Pre-release runtime and source checks
 
