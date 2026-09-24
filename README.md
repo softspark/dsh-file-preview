@@ -2,7 +2,6 @@
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/@softspark/dsh-file-preview.svg)](https://www.npmjs.com/package/@softspark/dsh-file-preview)
-[![CI](https://github.com/softspark/dsh-file-preview/actions/workflows/ci.yml/badge.svg)](https://github.com/softspark/dsh-file-preview/actions/workflows/ci.yml)
 
 Read-only file preview inside a DeepSeek Harness conversation. Click a file the agent produced or mentioned and it opens in the browser, instead of launching a desktop application.
 
